@@ -49,58 +49,52 @@ if __name__ == "__main__":
         # visible_trees(trees)
 
         # PART 2
-        scores = [0]
-        for i in range(0, len(trees)):
+        scores = {}
+        for i in range(1, len(trees) - 1):
             row = trees[i]
-            for j in range(0, len(row)):
+            for j in range(1, len(row) - 1):
                 if trees[i][j] == 0:
                     continue
 
                 tree = trees[i][j]
                 score = 0
 
-                right = row[:j]
-                left = row[j + 1 :]
-
                 col = []
                 for k in range(0, len(trees)):
                     col.append(trees[k][j])
 
-                up = col[:i]
+                right = row[:j][::-1]
+                left = row[j + 1 :]
+                up = col[:i][::-1]
                 down = col[i + 1 :]
 
                 view_r = 0
                 for tree_view in right:
-                    if tree_view != 0:
-                        view_r += 1
+                    view_r += 1
                     if tree <= tree_view:
                         break
 
                 view_l = 0
                 for tree_view in left:
-                    if tree_view != 0:
-                        view_l += 1
+                    view_l += 1
                     if tree <= tree_view:
                         break
 
                 view_u = 0
                 for tree_view in up:
-                    if tree_view != 0:
-                        view_u += 1
+                    view_u += 1
                     if tree <= tree_view:
                         break
 
                 view_d = 0
                 for tree_view in down:
-                    if tree_view != 0:
-                        view_d += 1
+                    view_d += 1
                     if tree <= tree_view:
                         break
 
                 score = view_r * view_l * view_d * view_u
-                if score == max(scores):
-                    print(j, i, "-", score)
-                scores.append(score)
+                scores[score] = f"{tree} [{i}][{j}]"
 
-        print(f"There best spot has obtain {max(scores)} points")
-        [print(score) for score in scores]
+        print(
+            f"There best spot has obtain {max(scores)} points. - {scores[max(scores)]}"
+        )
