@@ -1,11 +1,37 @@
+from dataclasses import dataclass, field
+from typing import Any
+
 DIR_PATH = "Day 9 - Rope Bridge"
+
+
+@dataclass
+class Coors:
+    x: int
+    y: int
+
+
+@dataclass
+class Knot:
+    id: int
+    coors: Coors
+    prev_knot: Any | None = None
+    next_knot: Any | None = None
+    history_coors: dict[str, int] = field(default_factory=dict)
+
 
 if __name__ == "__main__":
     with open(f"./{DIR_PATH}/input", "r") as fptr:
         actions = fptr.readlines()
 
-    head = {"coors": [0, 0], "history_coors": {}}
-    tail = {"coors": [0, 0], "history_coors": {}}
+    NUM_OF_KNOTS = 9
+
+    knots = [Knot(id=0, coors=Coors(x=0, y=0))]
+    for i in range(1, NUM_OF_KNOTS + 1):
+        tail = Knot(id=i, coors=Coors(x=0, y=0))
+        tail.prev_knot = knots[i - 1]
+        knots[i - 1].next_knot = tail
+        knots.append(tail)
+    head = knots.pop(0)
 
     for action in actions:
         move, positions = action.strip().split()
@@ -13,42 +39,33 @@ if __name__ == "__main__":
         for i in range(int(positions)):
             match move:
                 case "R":
-                    head["coors"][0] += 1
+                    head.coors.x += 1
                 case "L":
-                    head["coors"][0] -= 1
+                    head.coors.x -= 1
                 case "U":
-                    head["coors"][1] += 1
+                    head.coors.y += 1
                 case "D":
-                    head["coors"][1] -= 1
+                    head.coors.y -= 1
 
-            diff_x = head["coors"][0] - tail["coors"][0]
-            diff_y = head["coors"][1] - tail["coors"][1]
+            for knot in knots:
+                diff_x = knot.prev_knot.coors.x - knot.coors.x
+                diff_y = knot.prev_knot.coors.y - knot.coors.y
 
-            if int(abs(diff_x)) > 1 or int(abs(diff_y)) > 1:
-                tail["coors"][0] = (
-                    tail["coors"][0] + int(diff_x / int(abs(diff_x)))
-                    if diff_x != 0
-                    else tail["coors"][0]
-                )
-                tail["coors"][1] = (
-                    tail["coors"][1] + int(diff_y / int(abs(diff_y)))
-                    if diff_y != 0
-                    else tail["coors"][1]
-                )
+                if int(abs(diff_x)) > 1 or int(abs(diff_y)) > 1:
+                    knot.coors.x = (
+                        knot.coors.x + int(diff_x / int(abs(diff_x)))
+                        if diff_x != 0
+                        else knot.coors.x
+                    )
+                    knot.coors.y = (
+                        knot.coors.y + int(diff_y / int(abs(diff_y)))
+                        if diff_y != 0
+                        else knot.coors.y
+                    )
 
-            if head["history_coors"].get(f"{head['coors'][0]}, {head['coors'][1]}"):
-                head["history_coors"][f"{head['coors'][0]}, {head['coors'][1]}"] += 1
-            else:
-                head["history_coors"][f"{head['coors'][0]}, {head['coors'][1]}"] = 1
+                if knot.history_coors.get(f"{knot.coors.x}, {knot.coors.y}"):
+                    knot.history_coors[f"{knot.coors.x}, {knot.coors.y}"] += 1
+                else:
+                    knot.history_coors[f"{knot.coors.x}, {knot.coors.y}"] = 1
 
-            if (
-                tail["history_coors"].get(f"{tail['coors'][0]}, {tail['coors'][1]}")
-                and not last_coord == tail["coors"]
-            ):
-                tail["history_coors"][f"{tail['coors'][0]}, {tail['coors'][1]}"] += 1
-            else:
-                tail["history_coors"][f"{tail['coors'][0]}, {tail['coors'][1]}"] = 1
-
-            last_coord = tail["coors"].copy()
-
-    print(f"Rope visit at least once {len(tail['history_coors'])} positions")
+    print(f"Rope visit at least once {len(knots[-1:][0].history_coors)} positions")
