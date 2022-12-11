@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Optional
 
 
 DIR_PATH = __file__[:-8]
@@ -21,6 +20,7 @@ class Monkey:
     items: list = field(default_factory=list)
 
     divisor: int | None = None
+    mcm: int | None = None
     test_true_monkey: Monkey | None = None
     test_false_monkey: Monkey | None = None
 
@@ -43,6 +43,11 @@ class Monkey:
 
     def pop_item(self):
         return self.items.pop(0)
+
+
+def print_monkeys(monkeys: dict):
+    for monkey in monkeys.values():
+        print(monkey.id, "-", monkey.inspections)
 
 
 if __name__ == "__main__":
@@ -87,10 +92,19 @@ if __name__ == "__main__":
                 else:
                     monkey.test_false_monkey = monkeys.get(monkey_to_throw)
 
+        mcm = 1
+        for monkey in monkeys.values():
+            mcm *= monkey.divisor
+
+        for monkey in monkeys.values():
+            monkey.mcm = mcm
+
     print("All monkeys are set. Let's start the problem...")
 
-    for i in range(20):  # rounds
+    ROUNDS = 10000
+    for i in range(ROUNDS):  # rounds
         for monkey in monkeys.values():
+            monkey: Monkey
             if not monkey.items:
                 continue
 
@@ -98,10 +112,19 @@ if __name__ == "__main__":
             for item in items:
                 # multiply worry level
                 item.worry_level = monkey.calculate_operation(item.worry_level)
-                # divide worry level
-                item.worry_level //= 3
+                if item.worry_level > monkey.mcm:
+                    item.worry_level %= monkey.mcm
+
+                # divide worry level  # PART 1
+                # item.worry_level //= 3
+
                 # test
-                monkey.test(item.worry_level)
+                # monkey.test(item.worry_level)  # PART 1
+                monkey.test(item.worry_level)  # PART 2
+
+        # if i % 1000 == 0:
+        #     print(f"#########ROUNDS: {i} ############")
+        #     print_monkeys(monkeys)
 
     ordered_dict = {
         k: v
@@ -111,8 +134,9 @@ if __name__ == "__main__":
     }
     monkey_ids_ordered = []
     for monkey in ordered_dict.values():
-        print(monkey.id, "-", monkey.inspections)
         monkey_ids_ordered.append(monkey.id)
+
+    print_monkeys(monkeys)
 
     print(
         "Monkey Bussisness value:",
